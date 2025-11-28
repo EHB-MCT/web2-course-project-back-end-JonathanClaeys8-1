@@ -1,9 +1,12 @@
 // server.js
 const express = require("express");
-const { MongoClient } = require("mongodb");
+
+const { MongoClient, ObjectId } = require("mongodb");
 const credentials = require("./credentials");
 const app = express();
+const cors = require("cors");
 app.use(express.json());
+app.use(cors());
 
 // Connection credentials
 const uri = `mongodb+srv://${credentials.username}:${credentials.password}@web-driver.gwzsw.mongodb.net/web-driver?retryWrites=true&w=majority&appName=Web-Driver`;
@@ -23,11 +26,23 @@ async function connectDB() {
   }
 }
 
+// // Route: login
+// app.post("/login", (req, res) => {
+//   const { username, password } = req.body;
+//   console.log("Incoming credentials:", req.body);
+
+//   if (username === "santa" && password === "hoho") {
+//     res.send({ message: "Login successful" });
+//   } else {
+//     res.status(401).send({ error: "Invalid credentials" });
+//   }
+// });
+
 // Route: get all users
 app.get("/users", async (req, res) => {
   try {
     if (!usersCollection) {
-      return res.status(500).json({ error: "Database not initialized" });
+      return res.status(500).json({ error: "Database not running" });
     }
     const users = await usersCollection.find().toArray();
     res.json(users);
@@ -37,9 +52,84 @@ app.get("/users", async (req, res) => {
   }
 });
 
+// Route: create new user
+app.post("/users", async (req, res) => {
+  try {
+    if (!usersCollection) {
+      return res.status(500).json({ error: "Database not running" });
+    }
+    const { username } = req.body;
+
+    if (!username) {
+      return res.status(400).json({ error: "Username is required" });
+    }
+
+    const result = await usersCollection.insertOne({ username });
+    res.status(201).json({
+      message: "User created successfully",
+      user: { _id: result.insertedId, username },
+    });
+  } catch (err) {
+    console.error("Error creating user:", err);
+    res.status(500).json({ error: "Failed to create user" });
+  }
+});
+
+// Route: update username
+app.put("/users/:id", async (req, res) => {
+  try {
+    if (!usersCollection) {
+      return res.status(500).json({ error: "Database not running" });
+    }
+
+    const { id } = req.params;
+    const { username } = req.body;
+
+    if (!username) {
+      return res.status(400).json({ error: "Username is required" });
+    }
+
+    const result = await usersCollection.updateOne(
+      { _id: new ObjectId(id) },
+      { $set: { username: username } }
+    );
+
+    if (result.matchedCount === 0) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    res.json({ message: "User updated successfully" });
+  } catch (err) {
+    console.error("Error updating user:", err);
+    res.status(500).json({ error: "Failed to update user" });
+  }
+});
+
+// Route: delete user
+app.delete("/users/:id", async (req, res) => {
+  console.error("works");
+  try {
+    if (!usersCollection) {
+      return res.status(500).json({ error: "Database not running" });
+    }
+
+    const { id } = req.params;
+    const result = await usersCollection.deleteOne({ _id: new ObjectId(id) });
+
+    if (result.deletedCount === 0) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    res.json({ message: "User deleted successfully" });
+  } catch (err) {
+    console.error("Error deleting user:", err);
+    res.status(500).json({ error: "Failed to delete user" });
+  }
+});
+
 // Start server
 const PORT = 3000;
 app.listen(PORT, async () => {
   await connectDB();
-  console.log(`🚀 Server running on http://localhost:${PORT}`);
+  console.log(`http://localhost:${PORT}`);
 });
