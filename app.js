@@ -26,29 +26,43 @@ async function connectDB() {
   }
 }
 
-// // Route: login
-// app.post("/login", (req, res) => {
-//   const { username, password } = req.body;
-//   console.log("Incoming credentials:", req.body);
-
-//   if (username === "santa" && password === "hoho") {
-//     res.send({ message: "Login successful" });
-//   } else {
-//     res.status(401).send({ error: "Invalid credentials" });
-//   }
-// });
-
-// Route: get all users
+// Route: get all users (for profile selection)
 app.get("/users", async (req, res) => {
   try {
     if (!usersCollection) {
       return res.status(500).json({ error: "Database not running" });
     }
     const users = await usersCollection.find().toArray();
+    console.log("Fetching all users for profile selection");
     res.json(users);
   } catch (err) {
     console.error("Error fetching users:", err);
     res.status(500).json({ error: "Failed to fetch users" });
+  }
+});
+
+// Route: get current user data
+app.get("/user", async (req, res) => {
+  try {
+    if (!usersCollection) {
+      return res.status(500).json({ error: "Database not running" });
+    }
+
+    const userId = req.headers["user-id"];
+    if (!userId) {
+      return res.status(401).json({ error: "User ID missing" });
+    }
+
+    // Find user by ID
+    const user = await usersCollection.findOne({ _id: new ObjectId(userId) });
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    console.log("Fetching data for user:", user.username);
+    res.json(user);
+  } catch (err) {
+    res.status(500).json({ error: "Failed to fetch user data" });
   }
 });
 
@@ -75,6 +89,38 @@ app.post("/users", async (req, res) => {
   }
 });
 
+// Route: login user
+app.post("/login", async (req, res) => {
+  try {
+    if (!usersCollection) {
+      return res.status(500).json({ error: "Database not running" });
+    }
+    const { userId } = req.body;
+
+    // Validate userId
+    if (!userId) {
+      return res.status(400).json({ error: "User ID is missing" });
+    }
+
+    console.log("check");
+
+    // Find user by ID
+    const user = await usersCollection.findOne({ _id: new ObjectId(userId) });
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    console.log("User logged in:", user.username);
+    res.json({
+      message: "Login successful",
+      user: { _id: user._id, username: user.username },
+    });
+  } catch (err) {
+    console.error("Error during login:", err);
+    res.status(500).json({ error: "Failed to login" });
+  }
+});
+
 // Route: update username
 app.put("/users/:id", async (req, res) => {
   try {
@@ -94,6 +140,7 @@ app.put("/users/:id", async (req, res) => {
       { $set: { username: username } }
     );
 
+    // Check if any data was modified
     if (result.matchedCount === 0) {
       return res.status(404).json({ error: "User not found" });
     }
@@ -107,7 +154,6 @@ app.put("/users/:id", async (req, res) => {
 
 // Route: delete user
 app.delete("/users/:id", async (req, res) => {
-  console.error("works");
   try {
     if (!usersCollection) {
       return res.status(500).json({ error: "Database not running" });
@@ -122,7 +168,6 @@ app.delete("/users/:id", async (req, res) => {
 
     res.json({ message: "User deleted successfully" });
   } catch (err) {
-    console.error("Error deleting user:", err);
     res.status(500).json({ error: "Failed to delete user" });
   }
 });
