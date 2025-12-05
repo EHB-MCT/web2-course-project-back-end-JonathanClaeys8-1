@@ -157,19 +157,31 @@ app.put("/users/:id", async (req, res) => {
 // Route: delete user
 app.delete("/users/:id", async (req, res) => {
   try {
-    if (!usersCollection) {
+    if (!usersCollection || !gardensCollection) {
       return res.status(500).json({ error: "Database not running" });
     }
 
     const { id } = req.params;
-    const result = await usersCollection.deleteOne({ _id: new ObjectId(id) });
 
-    if (result.deletedCount === 0) {
+    // Delete all gardens belonging to the user
+    const gardensDeleteResult = await gardensCollection.deleteMany({
+      userId: id,
+    });
+
+    // Then delete the user
+    const userDeleteResult = await usersCollection.deleteOne({
+      _id: new ObjectId(id),
+    });
+
+    if (userDeleteResult.deletedCount === 0) {
       return res.status(404).json({ error: "User not found" });
     }
 
-    res.json({ message: "User deleted successfully" });
-  } catch (err) {
+    res.json({
+      message: "User deleted successfully",
+      message: "Gardens of user deleted",
+    });
+  } catch {
     res.status(500).json({ error: "Failed to delete user" });
   }
 });
