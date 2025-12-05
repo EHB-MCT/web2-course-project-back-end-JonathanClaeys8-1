@@ -13,6 +13,7 @@ const uri = `mongodb+srv://${credentials.username}:${credentials.password}@web-d
 const client = new MongoClient(uri);
 
 let usersCollection;
+let gardensCollection;
 
 // Connect once at startup
 async function connectDB() {
@@ -21,6 +22,7 @@ async function connectDB() {
     console.log("Connected to MongoDB");
     const database = client.db("leaf-it");
     usersCollection = database.collection("users");
+    gardensCollection = database.collection("gardens");
   } catch (err) {
     console.error("MongoDB connection error:", err);
   }
@@ -169,6 +171,91 @@ app.delete("/users/:id", async (req, res) => {
     res.json({ message: "User deleted successfully" });
   } catch (err) {
     res.status(500).json({ error: "Failed to delete user" });
+  }
+});
+
+// Route: get user's gardens
+app.get("/gardens", async (req, res) => {
+  try {
+    if (!gardensCollection) {
+      return res.status(500).json({ error: "Database not running" });
+    }
+
+    const userId = req.headers["user-id"];
+    if (!userId) {
+      return res.status(401).json({ error: "User ID missing" });
+    }
+
+    const gardens = await gardensCollection.find({ userId: userId }).toArray();
+    console.log("Fetching gardens for user:", userId);
+    res.json(gardens);
+  } catch (err) {
+    console.error("Error fetching gardens:", err);
+    res.status(500).json({ error: "Failed to fetch gardens" });
+  }
+});
+
+// Route: create new garden
+app.post("/gardens", async (req, res) => {
+  try {
+    if (!gardensCollection) {
+      return res.status(500).json({ error: "Database not running" });
+    }
+
+    const { name, userId } = req.body;
+
+    if (!name || !userId) {
+      return res
+        .status(400)
+        .json({ error: "Garden name and user ID are required" });
+    }
+
+    const newGarden = {
+      name: name,
+      userId: userId,
+    };
+
+    const result = await gardensCollection.insertOne(newGarden);
+    res.status(201).json({
+      message: "Garden created successfully",
+      garden: { _id: result.insertedId, ...newGarden },
+    });
+  } catch (err) {
+    console.error("Error creating garden:", err);
+    res.status(500).json({ error: "Failed to create garden" });
+  }
+});
+
+// Route: delete garden
+app.delete("/gardens/:id", async (req, res) => {
+  try {
+    if (!gardensCollection) {
+      return res.status(500).json({ error: "Database not running" });
+    }
+
+    const { id } = req.params;
+    const userId = req.headers["user-id"];
+
+    if (!userId) {
+      return res.status(401).json({ error: "User ID missing" });
+    }
+
+    const result = await gardensCollection.deleteOne({
+      _id: new ObjectId(id),
+      userId: userId, // Ensure user can only delete their own gardens
+    });
+
+    console.log("Delete result:", result);
+
+    if (result.deletedCount === 0) {
+      return res
+        .status(404)
+        .json({ error: "Garden not found or access denied" });
+    }
+
+    res.json({ message: "Garden deleted successfully" });
+  } catch {
+    res.status(500).json({ error: "Failed to delete garden" });
   }
 });
 
