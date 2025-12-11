@@ -14,6 +14,7 @@ const client = new MongoClient(uri);
 
 let usersCollection;
 let gardensCollection;
+let tasksCollection;
 
 // Connect once at startup
 async function connectDB() {
@@ -23,6 +24,7 @@ async function connectDB() {
     const database = client.db("leaf-it");
     usersCollection = database.collection("users");
     gardensCollection = database.collection("gardens");
+    tasksCollection = database.collection("tasks");
   } catch (err) {
     console.error("MongoDB connection error:", err);
   }
@@ -268,6 +270,121 @@ app.delete("/gardens/:id", async (req, res) => {
     res.json({ message: "Garden deleted successfully" });
   } catch {
     res.status(500).json({ error: "Failed to delete garden" });
+  }
+});
+
+// Route: get tasks for a garden
+app.get("/tasks", async (req, res) => {
+  try {
+    if (!tasksCollection) {
+      return res.status(500).json({ error: "Database not running" });
+    }
+
+    const gardenId = req.headers["garden-id"];
+    const userId = req.headers["user-id"];
+
+    if (!gardenId || !userId) {
+      return res.status(401).json({ error: "Garden ID or User ID missing" });
+    }
+
+    const tasks = await tasksCollection
+      .find({
+        gardenId: gardenId,
+        userId: userId,
+      })
+      .toArray();
+
+    console.log("Fetching tasks for garden:", gardenId);
+    res.json(tasks);
+  } catch (err) {
+    console.error("Error fetching tasks:", err);
+    res.status(500).json({ error: "Failed to fetch tasks" });
+  }
+});
+
+// Route: create new task
+app.post("/tasks", async (req, res) => {
+  try {
+    if (!tasksCollection) {
+      return res.status(500).json({ error: "Database not running" });
+    }
+
+    const { name, gardenId, userId, status } = req.body;
+
+    const newTask = {
+      name: name,
+      gardenId: gardenId,
+      userId: userId,
+      status: status || "todo",
+    };
+
+    const result = await tasksCollection.insertOne(newTask);
+    res.status(201).json({
+      task: { _id: result.insertedId, ...newTask },
+    });
+  } catch (err) {
+    console.error("Error creating task:", err);
+    res.status(500).json({ error: "Failed to create task" });
+  }
+});
+
+// Route: delete task
+app.delete("/tasks/:id", async (req, res) => {
+  try {
+    if (!tasksCollection) {
+      return res.status(500).json({ error: "Database not running" });
+    }
+
+    const { id } = req.params;
+    const userId = req.headers["user-id"];
+
+    if (!userId) {
+      return res.status(401).json({ error: "User ID missing" });
+    }
+
+    const result = await tasksCollection.deleteOne({
+      _id: new ObjectId(id),
+      userId: userId, // user can only delete their own tasks
+    });
+
+    if (result.deletedCount === 0) {
+      return res.status(404).json({ error: "Task not found" });
+    }
+
+    res.json({ message: "Task deleted successfully" });
+  } catch {
+    res.status(500).json({ error: "Failed to delete task" });
+  }
+});
+
+// Route: update task status
+app.put("/tasks/:id", async (req, res) => {
+  try {
+    if (!tasksCollection) {
+      return res.status(500).json({ error: "Database not running" });
+    }
+
+    const { id } = req.params;
+    const { status } = req.body;
+    const userId = req.headers["user-id"];
+
+    if (!userId) {
+      return res.status(401).json({ error: "User ID missing" });
+    }
+
+    const result = await tasksCollection.updateOne(
+      { _id: new ObjectId(id), userId: userId },
+      { $set: { status: status } }
+    );
+
+    if (result.matchedCount === 0) {
+      return res.status(404).json({ error: "Task not found" });
+    }
+
+    res.json({ message: "Task status updated successfully" });
+  } catch (err) {
+    console.error("Error updating task status:", err);
+    res.status(500).json({ error: "Failed to update task status" });
   }
 });
 
