@@ -243,7 +243,7 @@ app.post("/gardens", async (req, res) => {
 // Route: delete garden
 app.delete("/gardens/:id", async (req, res) => {
   try {
-    if (!gardensCollection) {
+    if (!gardensCollection || !tasksCollection) {
       return res.status(500).json({ error: "Database not running" });
     }
 
@@ -254,12 +254,17 @@ app.delete("/gardens/:id", async (req, res) => {
       return res.status(401).json({ error: "User ID missing" });
     }
 
+    // Delete all tasks from  the garden
+    const tasksDeleteResult = await tasksCollection.deleteMany({
+      gardenId: id,
+      userId: userId,
+    });
+
+    // Then delete the garden
     const result = await gardensCollection.deleteOne({
       _id: new ObjectId(id),
       userId: userId, // Ensure user can only delete their own gardens
     });
-
-    console.log("Delete result:", result);
 
     if (result.deletedCount === 0) {
       return res
