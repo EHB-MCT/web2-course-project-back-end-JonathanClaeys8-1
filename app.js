@@ -6,14 +6,17 @@
 const express = require("express");
 
 const { MongoClient, ObjectId } = require("mongodb");
-const credentials = require("./credentials");
+const dotenv = require("dotenv");
 const app = express();
+
+// Load environment variables
+dotenv.config();
 const cors = require("cors");
 app.use(express.json());
 app.use(cors());
 
 // Connection credentials
-const uri = `mongodb+srv://${credentials.username}:${credentials.password}@web-driver.gwzsw.mongodb.net/web-driver?retryWrites=true&w=majority&appName=Web-Driver`;
+const uri = `mongodb+srv://${process.env.MONGODB_USERNAME}:${process.env.MONGODB_PASSWORD}@web-driver.gwzsw.mongodb.net/web-driver?retryWrites=true&w=majority&appName=Web-Driver`;
 const client = new MongoClient(uri);
 
 let usersCollection;
