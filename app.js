@@ -1,3 +1,7 @@
+// Sources used in this file:
+// Express.js setup and routing: https://expressjs.com/en/starter/hello-world.html
+// ChatGPT : Line = 148
+
 // server.js
 const express = require("express");
 

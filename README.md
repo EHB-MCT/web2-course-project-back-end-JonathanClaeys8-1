@@ -1,22 +1,49 @@
-[![Open in Codespaces](https://classroom.github.com/assets/launch-codespace-2972f46106e565e64193e422d61a12cf1da4916b45550586e14ef0a7c637dd04.svg)](https://classroom.github.com/open-in-codespaces?assignment_repo_id=21636597)
-# Your project name ✨
-A short description of your project. Aim for 2-3 lines. \
+# Leaf-it
 
-Website url: [website.be](website.be) (optional)
+A modern task management application with a gardening theme where users can plant tasks, watch them grow, and let productivity bloom!
 
-If you want to add more sections, please do so after the existing ones (avoid burying your sources under a lot of text!).
+## 🌿 About
 
-## Up & running (optional) 🏃‍➡️
-This should contain step by step instructions to run your project (delete this section if it's not relevant). \
-Also include login credentials or other vital information if needed.
+Leaf-it is an intuitive task manager that visualizes your productivity through plant growth. As you complete tasks, your virtual garden flourishes, providing a motivating and visual way to track your progress.
 
-## Sources 🗃️
-List **ALL your used sources** here:
-- Used a tutorial or example code? Place a link to them here. (youtube, website, github, ...) and **list the files in which they were used**.
-- Used ChatGPT? Generate a ChatGPT share link: options (three dots) > share and **list the files in which it was used**. This will not work if you have uploaded images in your prompt. In that case, add screenshots instead.
+## Getting Started
 
-It's not enough to only list the sources here, also add the sources to the top of the files in which you used them and indicate the specific parts of the code which are not your own (by writing comments and refering to the correct source(s)). \
-IF you use a source as the base/start for a file, then first place the source in the file and **COMMIT it IMMEDIATELY, BEFORE** adding your own code or modifying it. \
-**ALWAYS** use concise BUT CLEAR commit messages!
+### Prerequisites
 
-Have a look at the example repository: https://github.com/EHB-MCT/example-readme
+- Node.js (v16 or higher)
+- npm (comes with Node.js)
+
+### Installation
+
+1. **Clone the repository**
+   git clone <repository-url>
+   cd your file path
+
+2. **Install dependencies**
+   npm install
+
+3. **Start development server**
+   npm run dev
+
+4. **Open your browser**
+   Navigate to `http://localhost:5173`
+
+## How to Use
+
+1. **Start**: Click "Let's start!" on the homepage
+2. **Choose Profile**: Select existing profile or click "Add profile"
+3. **Create Garden**: Click the "+" button to create your first garden
+4. **Add Tasks**: Click the "+" button in the plants section to add tasks
+5. **Manage Tasks**: Click on tasks to change their status
+6. **Watch Growth**: See your plant grow as you complete more tasks
+
+## Sources
+
+- [Vite](https://vite.dev/config/)
+- [Reset-CSS](https://meyerweb.com/eric/tools/css/reset/)
+- [MongoDB](https://www.mongodb.com/docs/drivers/node/current/crud/)
+- [Express](https://expressjs.com/en/5x/api.html#express.json)
+- [Nodemon](https://www.npmjs.com/package/nodemon)
+- [Mozilla](https://developer.mozilla.org/en-US/docs/Web/API/Window/localStorage)
+- [Mozilla](https://developer.mozilla.org/en-US/docs/Web/API/Request)
+- [ChatGPT-link](https://chatgpt.com/share/6944a186-0350-8008-8ef3-736e5e601f9e)
