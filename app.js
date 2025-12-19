@@ -401,8 +401,11 @@ app.put("/tasks/:id", async (req, res) => {
 });
 
 // Start server
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
 app.listen(PORT, async () => {
   await connectDB();
-  console.log(`http://localhost:${PORT}`);
+  console.log(`Server running on port ${PORT}`);
+  if (process.env.NODE_ENV !== 'production') {
+    console.log(`http://localhost:${PORT}`);
+  }
 });
